@@ -29,15 +29,16 @@ def graph_cut(file, k, s, fore, back):
     If = np.array(I_pil.crop(fore), dtype=np.float32)
     Ib = np.array(I_pil.crop(back), dtype=np.float32)
 
-    # # show foreground and background samples on the original image
+    # show foreground and background samples on the original image
     # original_color = np.array(Image.open(file))
     # plt.figure(figsize=(5, 5))
     # plt.title("Foreground and Background Sample")
     # plt.imshow(original_color)
     # plt.gca().add_patch(plt.Rectangle((fore[0], fore[1]), fore[2] - fore[0], fore[3] - fore[1], edgecolor='green', facecolor='none', linewidth=2))
     # plt.gca().add_patch(plt.Rectangle((back[0], back[1]), back[2] - back[0], back[3] - back[1], edgecolor='red', facecolor='none', linewidth=2))
-
+    
     # plt.axis("off") 
+    # plt.show()
 
     # Compute histogram means
     # If_mean = np.mean(cv2.calcHist([If], [0], None, [256], [0, 256]))
@@ -121,7 +122,8 @@ def graph_cut(file, k, s, fore, back):
     # -------------------------------
     # 8. Build output image
     # -------------------------------
-    original_color = np.array(Image.open(file))
+    # original_color = np.array(Image.open(file))
+    original_color = np.array(Image.open(file).convert("RGB"))
     # convert to RGB if grayscale
     if original_color.ndim == 2:
         original_color = np.stack([original_color] * 3, axis=-1)
@@ -149,8 +151,9 @@ def graph_cut(file, k, s, fore, back):
 # Run examples
 # -------------------------------
 
-graph_cut('../data/1/input1.jpg', 2, 100, (225, 142, 279, 185), (7, 120, 61, 163))
+# graph_cut('../data/1/input1.jpg', 2, 100, (225, 142, 279, 185), (7, 120, 61, 163))
 # graph_cut('../data/1/input2.jpg', 2, 100, (148, 105, 201, 165), (11, 12, 80, 52))
+graph_cut('../data/1/input3.png', 15, 2, (220, 40, 280, 100), (0, 200, 500, 500))
 
 # bigger k → smoother segmentation
 # smaller s → more sensitive to intensity differences

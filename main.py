@@ -30,12 +30,12 @@ def graph_cut(file, k, s, fore, back):
     Ib = np.array(I_pil.crop(back), dtype=np.float32)
 
     # show foreground and background samples on the original image
-    # original_color = np.array(Image.open(file))
-    # plt.figure(figsize=(5, 5))
-    # plt.title("Foreground and Background Sample")
-    # plt.imshow(original_color)
-    # plt.gca().add_patch(plt.Rectangle((fore[0], fore[1]), fore[2] - fore[0], fore[3] - fore[1], edgecolor='green', facecolor='none', linewidth=2))
-    # plt.gca().add_patch(plt.Rectangle((back[0], back[1]), back[2] - back[0], back[3] - back[1], edgecolor='red', facecolor='none', linewidth=2))
+    original_color = np.array(Image.open(file))
+    plt.figure(figsize=(5, 5))
+    plt.title("Foreground and Background Sample")
+    plt.imshow(original_color)
+    plt.gca().add_patch(plt.Rectangle((fore[0], fore[1]), fore[2] - fore[0], fore[3] - fore[1], edgecolor='green', facecolor='none', linewidth=2))
+    plt.gca().add_patch(plt.Rectangle((back[0], back[1]), back[2] - back[0], back[3] - back[1], edgecolor='red', facecolor='none', linewidth=2))
     
     # plt.axis("off") 
     # plt.show()
@@ -88,7 +88,7 @@ def graph_cut(file, k, s, fore, back):
 
             g.add_tedge(idx, float(ws), float(wt))
 
-            # 4-neighborhood smoothness
+            # 8-neighborhood smoothness
             if j > 0:
                 w = k * np.exp(-((I[i, j] - I[i, j - 1]) ** 2) / s)
                 # print(f"Edge ({i},{j}) ↔ ({i},{j-1}): weight={w:.2f}")
@@ -104,6 +104,23 @@ def graph_cut(file, k, s, fore, back):
             if i < m - 1:
                 w = k * np.exp(-((I[i, j] - I[i + 1, j]) ** 2) / s)
                 g.add_edge(idx, node_id(i + 1, j), float(w), abs(float(k-w)))
+            
+            if i > 0 and j > 0:
+                w = k * np.exp(-((I[i, j] - I[i - 1, j - 1]) ** 2) / s)
+                g.add_edge(idx, node_id(i - 1, j - 1), float(w), abs(float(k-w)))
+            
+            if i > 0 and j < n - 1:
+                w = k * np.exp(-((I[i, j] - I[i - 1, j + 1]) ** 2) / s)
+                g.add_edge(idx, node_id(i - 1, j + 1), float(w), abs(float(k-w)))
+
+            if i < m - 1 and j > 0:
+                w = k * np.exp(-((I[i, j] - I[i + 1, j - 1]) ** 2) / s)
+                g.add_edge(idx, node_id(i + 1, j - 1), float(w), abs(float(k-w)))
+            
+            if i < m - 1 and j < n - 1:
+                w = k * np.exp(-((I[i, j] - I[i + 1, j + 1]) ** 2) / s)
+                g.add_edge(idx, node_id(i + 1, j + 1), float(w), abs(float(k-w)))
+
     # -------------------------------
     # 6. Run maxflow
     # -------------------------------
@@ -124,9 +141,6 @@ def graph_cut(file, k, s, fore, back):
     # -------------------------------
     # original_color = np.array(Image.open(file))
     original_color = np.array(Image.open(file).convert("RGB"))
-    # convert to RGB if grayscale
-    if original_color.ndim == 2:
-        original_color = np.stack([original_color] * 3, axis=-1)
     output = np.copy(original_color)
     print("output shape:", output.shape)
 
@@ -153,7 +167,7 @@ def graph_cut(file, k, s, fore, back):
 
 # graph_cut('../data/1/input1.jpg', 2, 100, (225, 142, 279, 185), (7, 120, 61, 163))
 # graph_cut('../data/1/input2.jpg', 2, 100, (148, 105, 201, 165), (11, 12, 80, 52))
-graph_cut('../data/1/input3.png', 15, 2, (220, 40, 280, 100), (0, 200, 500, 500))
+graph_cut('../data/1/input3.png', 5, 2, (220, 40, 280, 100), (0, 200, 500, 500))
 
 # bigger k → smoother segmentation
 # smaller s → more sensitive to intensity differences

@@ -7,6 +7,62 @@ import tensorflow as tf
 from keras.layers import TFSMLayer
 from keras import Model
 from inference_unet import *
+import os
+
+
+
+
+ct_nii = nib.load("../data/3/volume-11.nii")
+ct_volume = ct_nii.get_fdata()
+
+seg_nii = nib.load("../data/3/segmentation-11.nii")
+gt_seg = seg_nii.get_fdata()
+
+ct_volume = np.clip(ct_volume, 40, 400)
+ct_volume = (ct_volume - 40) / (400 - 40)
+ct_volume = ct_volume.astype(np.float32)
+
+
+slice_idx = 410  
+plt.figure(figsize=(10,4))
+
+plt.subplot(1,2,1)
+plt.imshow(ct_volume[:, :, slice_idx], cmap="gray")
+plt.title("CT Slice")
+
+
+slice_gt = gt_seg[:, :, slice_idx]
+
+# Define colors for labels 0,1,2
+cmap = mcolors.ListedColormap([
+    "black",   # 0 → background
+    "white",   # 1 → liver
+    "red"      # 2 → tumor
+])
+
+# Ensure values map exactly to 0,1,2
+bounds = [0, 1, 2, 3]
+norm = mcolors.BoundaryNorm(bounds, cmap.N)
+plt.subplot(1,2,2)
+
+plt.imshow(slice_gt, cmap=cmap, norm=norm)
+plt.title("GT: Liver (white), Tumor (red)")
+# plt.axis("off")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 tfsmlayer = TFSMLayer("../final_model", call_endpoint="serving_default")
@@ -18,22 +74,46 @@ model = Model(inputs, outputs)
 print("Model loaded successfully.")
 
 
-ct_nii = nib.load("../data/2/volume-111.nii")
-ct_volume = ct_nii.get_fdata()
-
-seg_nii = nib.load("../data/2/segmentation-111.nii")
-gt_seg = seg_nii.get_fdata()
-
-ct_volume = np.clip(ct_volume, 40, 400)
-ct_volume = (ct_volume - 40) / (400 - 40)
-ct_volume = ct_volume.astype(np.float32)
-
 
 patch_shape = (128,128,16)
 stride = (64,64,8)  # overlap for smoother output
 
 pred_mask_full = predict_full_volume(model, ct_volume, patch_shape, stride, threshold=0.5)
 print("Full-volume prediction done.", pred_mask_full.shape)
+
+
+# Ensure mask type is integer
+pred_mask_full = pred_mask_full.astype(np.uint8)
+
+# Create new NIfTI image using original affine & header
+pred_nii = nib.Nifti1Image(
+    pred_mask_full,
+    affine=ct_nii.affine,
+    header=ct_nii.header
+)
+
+# Optional but recommended: fix datatype in header
+pred_nii.set_data_dtype(np.uint8)
+
+# Save
+save_path = "../data/out3/prediction-11.nii"
+nib.save(pred_nii, save_path)
+
+print("Saved prediction to:", save_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 for i in range(0, pred_mask_full.shape[2], 5):  # show every 5th slice

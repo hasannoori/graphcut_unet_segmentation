@@ -139,11 +139,3 @@ def run_inference(img_path, mask_path, slice_idx, model_path):
 
     return img_resized, pred_mask, bg_mask
 
-
-
-
-
-
-
-
-

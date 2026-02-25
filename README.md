@@ -51,7 +51,9 @@ This keeps the project organized and preserves your original work.
 1. Open the notebook(s) in **`Online Notebooks/`**
 2. Use the **parameter files in that same folder**
 3. Run cells in order
-
+* The final file is **`inference_Unet_plus_Graphcut.ipynb`** that compares UNet and UNet + Graphcut approaches.
+* For regenerating UNet only results you can use. **`inference_enhanced_unet_model.ipynb`** for enhanced UNet and **`train_inference_base_unet_model.ipynb`** (which includes inference code).
+* The code used for brain tumor segmentation on private dataset is available in **`braintumor_segmentation_private_dataset.ipynb`** but unfortunately we can not put the link to dataset in the nootebook.
 ### To train U-Net locally
 Use `train_unet_model.ipynb` and the modules inside `src/`.
 
